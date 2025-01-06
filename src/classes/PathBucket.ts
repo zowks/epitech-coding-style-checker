@@ -1,6 +1,8 @@
 import { isAbsolute, normalize, relative, resolve } from 'node:path/posix';
 import { exists, readdir, stat } from 'node:fs/promises';
 
+const excludedDirs = ['./tests/', './bonus/', './.git/'] as const;
+
 export default class PathBucket {
     private readonly _paths: Set<string> = new Set();
 
@@ -14,10 +16,11 @@ export default class PathBucket {
      */
     public async add(paths: string[]): Promise<void> {
         await Promise.all(paths.map(async path => {
-            if (!PathBucket.filter(path))
+            const normalized = PathBucket.normalize(path);
+
+            if (!PathBucket.filter(normalized))
                 return;
 
-            const normalized = PathBucket.normalize(path);
             if (!await exists(normalized))
                 throw new Error(`Path ${normalized} does not exist`);
 
@@ -47,7 +50,14 @@ export default class PathBucket {
         return [...files];
     }
 
-    public static filter(path: string): boolean { return true; }
+    /**
+     * Filters whether the given `path` starts with any of the excluded directories. *(`./tests/`, `./bonus/`, `./.git/`)*
+     * @param path - The path to be checked against the excluded directories.
+     * @returns `true` if the path does not start with any of the excluded directories, otherwise `false`.
+     */
+    public static filter(path: string): boolean {
+        return !excludedDirs.find((directory) => path.startsWith(directory));
+    }
 
     public static normalize(path: string): string {
         const { abs, rel } = isAbsolute(path) ?
@@ -61,13 +71,17 @@ export default class PathBucket {
         const files: string[] = [];
 
         for (const dirent of await readdir(directory, { recursive: true, withFileTypes: true })) {
-            if (!dirent.isFile() || !PathBucket.filter(dirent.name))
+            if (!dirent.isFile())
                 continue;
 
-            if (dirent.parentPath)
-                files.push(PathBucket.normalize(`${dirent.parentPath}/${dirent.name}`));
-            else
-                files.push(PathBucket.normalize(dirent.name));
+            const normalized = dirent.parentPath ?
+                PathBucket.normalize(`${dirent.parentPath}/${dirent.name}`) :
+                PathBucket.normalize(dirent.name);
+
+            if (!PathBucket.filter(normalized))
+                continue;
+
+            files.push(normalized);
         }
 
         return files;
