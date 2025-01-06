@@ -1,0 +1,11 @@
+{
+    "name": "Epitech Coding Style Checker",
+    "image": "ghcr.io/zowks/epitech-devcontainer:latest",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "oven.bun-vscode"
+            ]
+        }
+    }
+}
