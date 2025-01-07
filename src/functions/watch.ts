@@ -5,14 +5,16 @@ import bananaVera from '../commands/bananaVera';
 import gitCheckIgnore from '../commands/gitCheckIgnore';
 import Arguments from '../classes/Arguments';
 
-async function handleWatch(event: WatchEventType, filename: string | null): Promise<void> {
-    if (!filename || event !== 'change' || !PathBucket.filter(filename))
+async function handleWatch(event: WatchEventType, filename: string | null, parent: string): Promise<void> {
+    if (!filename || event !== 'change')
         return;
 
-    if (!new Arguments().noIgnore && !gitCheckIgnore([filename]).length)
+    const path = parent + filename;
+    if (!PathBucket.filter(path) || (!new Arguments().noIgnore && !gitCheckIgnore([path]).length))
         return;
 
-    output(await bananaVera([filename]));
+    console.clear();
+    output(await bananaVera([path]));
 }
 
 export default async (paths: string[]): Promise<void> => {
@@ -23,6 +25,6 @@ export default async (paths: string[]): Promise<void> => {
         watch(
             path,
             { recursive: true, signal: controller.signal },
-            handleWatch
+            (event, filename) => handleWatch(event, filename, path)
         );
 }
