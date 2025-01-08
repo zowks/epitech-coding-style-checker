@@ -70,6 +70,16 @@ export default class Arguments {
     }
 
     private _help(): never {
+        Bun.write(
+            stdout,
+            `coding-style - A simple Epitech C coding style checker\n`.strong.underline +
+            `${'Usage:'.strong} ${Bun.argv[1].split('/').pop()} [option(s)] [path(s) ...]\n\n`.blue +
+            `${'Options:'.strong}\n`.yellow +
+            `   ${'-h, --help'.strong}\t\tDisplay this help message\n`.yellow +
+            `   ${'-v, --version'.strong}\tDisplay the current version\n`.yellow +
+            `   ${'-w, --watch'.strong}\t\tWatch for file changes & re-run automatically\n`.yellow +
+            `   ${'--no-ignore'.strong}\t\tIgnore ${'.gitignore'.italic} pattern(s)\n`.yellow
+        );
         exit(0);
     }
 
