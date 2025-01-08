@@ -1,3 +1,4 @@
+import { stdout } from "bun";
 import { exit } from "node:process";
 import { parseArgs } from "node:util";
 
@@ -14,10 +15,12 @@ export default class Arguments {
         Arguments._instance = this;
 
         let help = false;
+        let version = false;
         ({
             positionals: this._paths,
             values: {
                 help,
+                version,
                 'no-ignore': this._noIgnore,
                 watch: this._watch
             }
@@ -31,6 +34,11 @@ export default class Arguments {
                     default: false,
                     short: 'h'
                 },
+                version: {
+                    type: 'boolean',
+                    default: false,
+                    short: 'v'
+                },
                 'no-ignore': {
                     type: 'boolean',
                     default: false
@@ -43,8 +51,8 @@ export default class Arguments {
             }
         }));
 
-        if (help)
-            this._help();
+        if (help) this._help();
+        if (version) this._version();
     }
 
     get paths(): string[] {
@@ -62,6 +70,11 @@ export default class Arguments {
     }
 
     private _help(): never {
+        exit(0);
+    }
+
+    private _version(): never {
+        Bun.write(stdout, `${'coding-style version:'.strong} ${'v1.0.0'.blue}\n`);
         exit(0);
     }
 }
